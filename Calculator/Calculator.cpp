@@ -30,6 +30,13 @@ Calculator::ActionType Calculator::getLastOperation()
 	return ActionType::None;
 }
 
+// Logic: 
+// - If it is a number then just add it to the actions vector (but adding two
+// times a number is not allowed as "3 4 6 =" is not a correct syntax. "3 + 6 =" would be correct.)
+// - If it is an operation (like "3+4-") then do the operation with the operation before that
+// ("3+4" in the example) and add it to "left expression" (m_leftExpression).
+// - "=" and "None" as an operation means that a totally new calculation started from there,
+// meaning that the first number after them are just assigned to "left expression" (m_leftExpression).
 bool Calculator::addInput(const Action& input)
 {
 	const Calculator::Action lastInput = getLastInput();
