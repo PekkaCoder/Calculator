@@ -1,3 +1,5 @@
+Visual C++ / MFC Calculator with simple operations. The purpose of this project is to learn MFC programming and good programming techniques.
+
 -Testing:
 3 + 4 - 2 = 5 + 7 = 12
 7 - 3 x 5 / 2 + 3 = 2.5
