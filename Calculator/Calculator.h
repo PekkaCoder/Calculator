@@ -1,12 +1,29 @@
 #pragma once
 #include <vector>
+#include <exception>
+
+class CalculatorException : public std::exception
+{
+public:
+	enum class ExceptionType : char { None=0, DividedByZero };
+	CalculatorException(std::string textWhat, ExceptionType exceptionType) : 
+		m_textWhat(textWhat), m_exceptionType(exceptionType)
+	{
+	}
+	virtual const char* what() const throw()
+	{
+		return m_textWhat.c_str();
+	}
+private:
+	std::string m_textWhat;
+	ExceptionType m_exceptionType{ ExceptionType::None };
+};
 
 class Calculator
 {
 public:
 	// ActionType: what has been entered from the calculator
 	enum class ActionType : char {Number, Plus, Minus, Multiply, Divide, Equals, None};
-	// 
 	struct Action
 	{
 		ActionType actionType;

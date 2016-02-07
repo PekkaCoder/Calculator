@@ -113,9 +113,18 @@ bool Calculator::addInput(const Action& input)
 			case ActionType::Divide:
 				if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
 				{
-					// "3 / 4 +", "3 / 4 ="
-					m_leftExpression.add(m_leftTerm.getValue() / lastInput.value, input.actionType);
-					m_leftTerm.reset();
+					if (lastInput.value == 0.0)
+					{
+						CalculatorException divByZeroException("Error: Cannot Divide By Zero",
+							CalculatorException::ExceptionType::DividedByZero);
+						throw divByZeroException;
+					}
+					else
+					{
+						// "3 / 4 +", "3 / 4 ="
+						m_leftExpression.add(m_leftTerm.getValue() / lastInput.value, input.actionType);
+						m_leftTerm.reset();
+					}
 				}
 				else if (isTerm(input.actionType)) // "3 / 4 x"
 					m_leftTerm.multiplyBy(1.0 / lastInput.value, input.actionType);

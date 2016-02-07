@@ -215,6 +215,9 @@ void CCalculatorDlg::resetOutput()
 
 void CCalculatorDlg::addDigit(char digit)
 {
+	if (m_errorInput)
+		reset();
+
 	UpdateData();
 	// After an operation the next digit will always be the first digit of the next number.
 	// This check can only be done for the first digit, so if we are entering digits
@@ -333,6 +336,9 @@ void CCalculatorDlg::createHistoryText()
 
 void CCalculatorDlg::doOperation(Calculator::ActionType operation)
 {
+	if (m_errorInput)
+		reset();
+
 	UpdateData();
 	// first add the last entered number
 	Calculator::Action input;
@@ -341,23 +347,37 @@ void CCalculatorDlg::doOperation(Calculator::ActionType operation)
 	m_calculator.addInput(input);
 	// then add the (last) operation
 	input.actionType = operation;
-	if (m_calculator.addInput(input))
+	m_errorInput = false;
+	try
 	{
-		if (!m_calculator.hasLeftTermValue() || !m_calculator.hasLeftExpressionValue())
+		if (m_calculator.addInput(input))
 		{
-			std::stringstream ss;
-			ss << m_calculator.getCurrentResult();
-			std::string curResult = ss.str();
+			if (!m_calculator.hasLeftTermValue() || !m_calculator.hasLeftExpressionValue())
+			{
+				std::stringstream ss;
+				ss << m_calculator.getCurrentResult();
+				std::string curResult = ss.str();
 
-			m_output = " ";
-			m_output += curResult.c_str();
-			UpdateData(FALSE);
+				m_output = " ";
+				m_output += curResult.c_str();
+				UpdateData(FALSE);
+			}
 		}
+	}
+	catch (std::exception& e)
+	{
+		m_output = e.what();
+		m_firstDigitEntered = FALSE;
+		m_errorInput = true;
 	}
 	// update output
 	createHistoryText();
 	if (operation == Calculator::ActionType::Equals)
+	{
+		if (m_errorInput)
+			m_historyText += " ";
 		m_historyText += m_output;
+	}
 	UpdateData(FALSE);
 	m_firstDigitEntered = FALSE;
 }
@@ -375,10 +395,12 @@ void CCalculatorDlg::OnBnClickedButtonEquals()
 void CCalculatorDlg::reset()
 {
 	m_calculator.reset();
+	m_errorInput = false;
 	m_firstDigitEntered = FALSE;
 	resetOutput();
 	m_historyText = "";
 	UpdateData(FALSE);
+
 }
 
 void CCalculatorDlg::OnBnClickedButtonC()

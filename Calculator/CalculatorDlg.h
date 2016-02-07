@@ -43,6 +43,7 @@ public:
 	afx_msg void OnBnClickedButtonMinus();
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 private:
+	bool m_errorInput = false;
 	const CString m_outputResetString{"0"};
 	void resetOutput();
 	void reset();

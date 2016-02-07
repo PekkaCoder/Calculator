@@ -13,10 +13,17 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Documents">
+      <UniqueIdentifier>{bf71637c-b633-4d7d-a2d7-bca385a80df2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-    <Text Include="..\LICENSE.txt" />
+    <Text Include="..\LICENSE.txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="ReadMe.txt">
+      <Filter>Documents</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CalculatorDlg.h">
