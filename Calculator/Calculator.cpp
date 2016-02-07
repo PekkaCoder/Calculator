@@ -9,7 +9,8 @@ Calculator::Action Calculator::getLastInput()
 
 void Calculator::reset()
 {
-	m_leftExpression = 0.0;
+	m_leftExpression.reset();
+	m_leftTerm.reset();
 	m_actions.clear();
 }
 
@@ -20,6 +21,16 @@ bool Calculator::isOperation(ActionType action)
 		action == ActionType::Equals);
 }
 
+bool Calculator::isTerm(ActionType action)
+{
+	return (action == ActionType::Multiply || action == ActionType::Divide);
+}
+
+bool Calculator::isExpression(ActionType action)
+{
+	return (action == ActionType::Plus || action == ActionType::Minus);
+}
+
 Calculator::ActionType Calculator::getLastOperation()
 {
 	for (auto op = m_actions.rbegin(); op != m_actions.rend(); ++op)
@@ -28,6 +39,11 @@ Calculator::ActionType Calculator::getLastOperation()
 			return op->actionType;
 	}
 	return ActionType::None;
+}
+
+double Calculator::getCurrentResult()
+{
+	return m_leftExpression.hasValue() ? m_leftExpression.getValue() : m_leftTerm.getValue();
 }
 
 // Logic: 
@@ -55,22 +71,78 @@ bool Calculator::addInput(const Action& input)
 			switch (lastOperation)
 			{
 			case ActionType::Plus:
-				m_leftExpression += lastInput.value;
+				if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
+				{
+					m_leftExpression.add(lastInput.value, input.actionType);
+					m_leftTerm.reset();
+				}
+				else if (isTerm(input.actionType))
+				{
+					m_leftTerm.set(lastInput.value, input.actionType);
+				}
 				break;
 			case ActionType::Minus:
-				m_leftExpression -= lastInput.value;
+				if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
+				{
+					m_leftExpression.add(-lastInput.value, input.actionType);
+					m_leftTerm.reset();
+				}
+				else if (isTerm(input.actionType))
+				{
+					m_leftTerm.set(-lastInput.value, input.actionType);
+				}
+
 				break;
 			case ActionType::Multiply:
-				m_leftExpression *= lastInput.value;
+				{
+					if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
+					{
+						m_leftExpression.add(m_leftTerm.getValue() * lastInput.value, input.actionType);
+						m_leftTerm.reset();
+					}
+					else if (isTerm(input.actionType))
+						m_leftTerm.multiplyBy(lastInput.value, input.actionType);
+				}
 				break;
 			case ActionType::Divide:
-				m_leftExpression /= lastInput.value;
+			{
+				if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
+				{
+					m_leftExpression.add(m_leftTerm.getValue() / lastInput.value, input.actionType);
+					m_leftTerm.reset();
+				}
+				else if (isTerm(input.actionType))
+					m_leftTerm.multiplyBy(1.0 / lastInput.value, input.actionType);
+			}
+			break;
+			case ActionType::Equals: // "=" is the start of a new beginnning, see (h: *)
+				{
+				if (isTerm(input.actionType))
+				{
+					m_leftExpression.reset();
+					m_leftTerm.set(lastInput.value, input.actionType);
+				}
+				else if (isExpression(input.actionType))
+				{
+					m_leftExpression.set(lastInput.value, input.actionType);
+					m_leftTerm.reset();
+				}
+				}
+ 
 				break;
-			case ActionType::Equals:
-				m_leftExpression = lastInput.value; // "=" is the start of a new beginnning, see (h: *)
-				break;
-			case ActionType::None:
-				m_leftExpression = lastInput.value; // "None" is the start of a new beginnning, see (h: *)
+			case ActionType::None: // "None" is the start of a new beginnning, see (h: *)
+				{
+				if (isTerm(input.actionType))
+				{
+					m_leftExpression.reset();
+					m_leftTerm.set(lastInput.value, input.actionType);
+				}
+				else if (isExpression(input.actionType))
+				{
+					m_leftExpression.set(lastInput.value, input.actionType);
+					m_leftTerm.reset();
+				}
+				}
 				break;
 			}
 			m_actions.push_back(input);

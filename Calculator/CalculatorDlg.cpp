@@ -3,6 +3,8 @@
 //
 
 #include "stdafx.h"
+#include <string>
+#include <sstream>
 #include "CalculatorApp.h"
 #include "CalculatorDlg.h"
 #include "afxdialogex.h"
@@ -309,7 +311,11 @@ void CCalculatorDlg::createHistoryText()
 		case Calculator::ActionType::Number:
 		{
 			CString strNumber;
-			strNumber.Format(_T("%i"), (int)m_calculator.getAction(i).value);
+			std::stringstream ss;
+			ss << m_calculator.getAction(i).value;
+			std::string stdNum = ss.str();
+
+			strNumber = stdNum.c_str();
 			m_historyText += strNumber;
 		}
 			break;
@@ -336,6 +342,8 @@ void CCalculatorDlg::createHistoryText()
 
 void CCalculatorDlg::doOperation(Calculator::ActionType operation)
 {
+
+
 	UpdateData();
 	// first add the last entered number
 	Calculator::Action input;
@@ -346,8 +354,15 @@ void CCalculatorDlg::doOperation(Calculator::ActionType operation)
 	input.actionType = operation;
 	if (m_calculator.addInput(input))
 	{
-		m_output.Format(_T("%i"), (int)m_calculator.getLeftExpression());
-		UpdateData(FALSE);
+		if (!m_calculator.hasLeftTermValue() || !m_calculator.hasLeftExpressionValue())
+		{
+			std::stringstream ss;
+			ss << m_calculator.getCurrentResult();
+			std::string curResult = ss.str();
+
+			m_output = curResult.c_str();
+			UpdateData(FALSE);
+		}
 	}
 	createHistoryText();
 	if (operation == Calculator::ActionType::Equals)

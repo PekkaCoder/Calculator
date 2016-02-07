@@ -1,3 +1,4 @@
+- 7/2: Did not have precedence for divide/multiply, so was working wrongly. That fixed. Seems to work but full testing missing.
 icon: http://www.softicons.com/system-icons/windows-8-metro-invert-icons-by-dakirby309/calculator-icon
 ================================================================================
     MICROSOFT FOUNDATION CLASS LIBRARY : Calculator Project Overview
