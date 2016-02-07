@@ -1,7 +1,3 @@
-
-// CalculatorDlg.cpp : implementation file
-//
-
 #include "stdafx.h"
 #include <string>
 #include <sstream>
@@ -12,7 +8,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
 
 // CAboutDlg dialog used for App About
 
@@ -28,8 +23,6 @@ public:
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-// Implementation
 protected:
 	DECLARE_MESSAGE_MAP()
 };
@@ -46,10 +39,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
-
 // CCalculatorDlg dialog
-
-
 
 CCalculatorDlg::CCalculatorDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_CALCULATOR_DIALOG, pParent)
@@ -58,7 +48,7 @@ CCalculatorDlg::CCalculatorDlg(CWnd* pParent /*=NULL*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_historyBkColor = RGB(0, 0, 166); 
-	m_historyBkBrush = new CBrush(m_historyBkColor);
+	m_historyBkBrush = std::make_unique<CBrush>(m_historyBkColor);
 }
 
 void CCalculatorDlg::DoDataExchange(CDataExchange* pDX)
@@ -141,7 +131,6 @@ BOOL CCalculatorDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	// TODO: Add extra initialization here
 	m_font.CreateFont(32, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, 
 		0, 0, 0, 0, _T("Microsoft Sans Serif"));
 	m_historyFont.CreateFont(18, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET,
@@ -164,10 +153,11 @@ BOOL CCalculatorDlg::OnInitDialog()
 	m_buttonMultiply.SetFont(&m_font);
 	m_editHistory.SetFont(&m_historyFont);
 	m_buttonDivide.SetFont(&m_font);
+	m_buttonEquals.SetFont(&m_font);
 	GetDlgItem(IDC_STATIC)->SetFont(&m_historyFont);
 	reset();
 
-	return TRUE;  // return TRUE  unless you set the focus to a control
+	return TRUE;  // return TRUE  unless you set the focus to a control 
 }
 
 void CCalculatorDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -186,7 +176,6 @@ void CCalculatorDlg::OnSysCommand(UINT nID, LPARAM lParam)
 // If you add a minimize button to your dialog, you will need the code below
 //  to draw the icon.  For MFC applications using the document/view model,
 //  this is automatically done for you by the framework.
-
 void CCalculatorDlg::OnPaint()
 {
 	if (IsIconic())
@@ -264,7 +253,6 @@ void CCalculatorDlg::OnBnClickedButton2()
 	addDigit('2');
 }
 
-
 void CCalculatorDlg::OnBnClickedButton3()
 {
 	addDigit('3');
@@ -309,30 +297,33 @@ void CCalculatorDlg::createHistoryText()
 		switch (m_calculator.getAction(i).actionType)
 		{
 		case Calculator::ActionType::Number:
-		{
-			CString strNumber;
-			std::stringstream ss;
-			ss << m_calculator.getAction(i).value;
-			std::string stdNum = ss.str();
+			{
+				CString strNumber;
+				std::stringstream ss;
+				ss << m_calculator.getAction(i).value;
+				std::string stdNum = ss.str();
 
-			strNumber = stdNum.c_str();
-			m_historyText += strNumber;
-		}
+				strNumber = stdNum.c_str();
+				if(m_historyText.IsEmpty())
+					m_historyText += strNumber;
+				else
+					m_historyText += (CString(" ") + strNumber);
+			}
 			break;
 		case Calculator::ActionType::Plus:
-			m_historyText += "+";
+			m_historyText += " +";
 			break;
 		case Calculator::ActionType::Divide:
-			m_historyText += "/";
+			m_historyText += " /";
 			break;
 		case Calculator::ActionType::Minus:
-			m_historyText += "-";
+			m_historyText += " -";
 			break;
 		case Calculator::ActionType::Multiply:
-			m_historyText += "x";
+			m_historyText += " x";
 			break;
 		case Calculator::ActionType::Equals:
-			m_historyText += "=";
+			m_historyText += " =";
 			break;
 		case Calculator::ActionType::None:
 			break;
@@ -342,8 +333,6 @@ void CCalculatorDlg::createHistoryText()
 
 void CCalculatorDlg::doOperation(Calculator::ActionType operation)
 {
-
-
 	UpdateData();
 	// first add the last entered number
 	Calculator::Action input;
@@ -360,10 +349,12 @@ void CCalculatorDlg::doOperation(Calculator::ActionType operation)
 			ss << m_calculator.getCurrentResult();
 			std::string curResult = ss.str();
 
-			m_output = curResult.c_str();
+			m_output = " ";
+			m_output += curResult.c_str();
 			UpdateData(FALSE);
 		}
 	}
+	// update output
 	createHistoryText();
 	if (operation == Calculator::ActionType::Equals)
 		m_historyText += m_output;
@@ -426,3 +417,4 @@ HBRUSH CCalculatorDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	// TODO:  Return a different brush if the default is not desired
 	return hbr;
 }
+

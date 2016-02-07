@@ -1,15 +1,10 @@
-
-// CalculatorDlg.h : header file
-//
-
 #pragma once
 #include "afxwin.h"
+#include <memory>
 #include "Calculator.h"
 
-// CCalculatorDlg dialog
 class CCalculatorDlg : public CDialogEx
 {
-// Construction
 public:
 	CCalculatorDlg(CWnd* pParent = NULL);	// standard constructor
 
@@ -20,8 +15,6 @@ public:
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
-
-// Implementation
 protected:
 	HICON m_hIcon;
 
@@ -81,6 +74,6 @@ private:
 	CButton m_buttonDivide;
 	CEdit m_editHistory;
 	CString m_historyText;
-	CBrush* m_historyBkBrush;
+	std::unique_ptr<CBrush> m_historyBkBrush;
 	COLORREF m_historyBkColor;
 };

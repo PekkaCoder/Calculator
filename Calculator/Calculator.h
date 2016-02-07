@@ -6,6 +6,7 @@ class Calculator
 public:
 	// ActionType: what has been entered from the calculator
 	enum class ActionType : char {Number, Plus, Minus, Multiply, Divide, Equals, None};
+	// 
 	struct Action
 	{
 		ActionType actionType;
@@ -14,45 +15,50 @@ public:
 
 	void reset();
 	bool addInput(const Action& input);
-	Action getLastInput();
-	double getCurrentResult();
-	bool hasLeftTermValue() { return m_leftTerm.hasValue(); }
-	bool hasLeftExpressionValue() { return m_leftExpression.hasValue(); }
-	bool isOperation(ActionType action);
+	Action getLastInput() const;
+	// Current (partial) result as much as it can be calculated. Terms results are not
+	// taken into account until the term has finished: 3 + 2 X 5 would return 3 becouse
+	// the term calculation is not finished.
+	double getCurrentResult() const;
+	bool hasLeftTermValue() const { return m_leftTerm.hasValue(); }
+	bool hasLeftExpressionValue() const { return m_leftExpression.hasValue(); }
+	bool isOperation(ActionType action) const;
 	// actions
-	int getActionsSize() { return m_actions.size(); }
+	int getActionsSize() { return static_cast<int>(m_actions.size()); }
 	const Action& getAction(int i) { return m_actions.at(i);  }
 private:
-	bool isTerm(ActionType action);
-	bool isExpression(ActionType action);
+	bool isTerm(ActionType action) const;
+	bool isExpression(ActionType action) const;
+	// like: +,-
 	class LeftExpression
 	{
 	public:
 		void reset();
 		void set(double value, ActionType rightOperation);
 		void add(double value, ActionType rightOperation);
-		double getValue() { return m_value; }
-		bool hasValue() { return m_hasValue; }
+		double getValue() const { return m_value; }
+		bool hasValue() const { return m_hasValue; }
 	private:
 		bool m_hasValue = false;
 		double m_value = 0.0;
 		ActionType m_rightOperation = ActionType::None;
 	};
+	// like: x,/
 	class LeftTerm
 	{
 	public:
 		void reset();
 		void set(double value, ActionType rightOperation);
 		void multiplyBy(double value, ActionType rightOperation);
-		double getValue() { return m_value; }
-		bool hasValue() { return m_hasValue; }
+		double getValue() const { return m_value; }
+		bool hasValue() const { return m_hasValue; }
 	private:
 		bool m_hasValue = false;
 		double m_value;
 		ActionType m_rightOperation = ActionType::None;
 	};
 	ActionType getLastOperation();
-	std::vector<Action> m_actions;
+	std::vector<Action> m_actions; // all the actions user has inputted (see ActionType)
 	// m_leftExpression is always the left hand side of the expression. An example:
 	// 5 -> m_leftExpression = 5 (*)
 	// 5 + 3 + -> m_leftExpression = 8
@@ -62,6 +68,9 @@ private:
 	// start from the beginning, meaning a number is entered first).
 	// So "=" and "None" (see (*)) are the start or the calculations.
 	LeftExpression m_leftExpression;
+	// if the calculation starts with terms:
+	// 3 x 4, this will go to m_leftTerm (not m_leftExpression). So m_leftExpression
+	// stays zero until next expression comes.
 	LeftTerm m_leftTerm;
 };
 

@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="..\LICENSE.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CalculatorDlg.h">
