@@ -147,7 +147,6 @@ BOOL CCalculatorDlg::OnInitDialog()
 	m_button8.SetFont(&m_font);
 	m_button9.SetFont(&m_font);
 	m_buttonPlus.SetFont(&m_font);
-	m_buttonPlus.SetFont(&m_font);
 	m_buttonC.SetFont(&m_font);
 	m_buttonMinus.SetFont(&m_font);
 	m_buttonMultiply.SetFont(&m_font);
@@ -208,6 +207,16 @@ HCURSOR CCalculatorDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+void CCalculatorDlg::reset()
+{
+	m_calculator.reset();
+	m_errorInput = false;
+	m_firstDigitEntered = FALSE;
+	resetOutput();
+	m_historyText = "";
+	UpdateData(FALSE);
+}
+
 void CCalculatorDlg::resetOutput()
 {
 	m_output = m_outputResetString;
@@ -216,7 +225,7 @@ void CCalculatorDlg::resetOutput()
 void CCalculatorDlg::addDigit(char digit)
 {
 	if (m_errorInput)
-		reset();
+		return;
 
 	UpdateData();
 	// After an operation the next digit will always be the first digit of the next number.
@@ -225,19 +234,20 @@ void CCalculatorDlg::addDigit(char digit)
 	if (m_calculator.isOperation(m_calculator.getLastInput().actionType)  &&
 		!m_firstDigitEntered)
 	{
+		// (3 + 4 x 6 = input: 2 => 2)
 		m_output = digit;
-		m_firstDigitEntered = TRUE;
 	}
 	else
 	{
 		if (m_output == m_outputResetString && digit == '0')
-			return; // if zero is the first digit typed, ignore it
-		if (m_output == m_outputResetString)
-			m_output = digit; // first digit
+			return; // (0 : input: 0 => 0) if zero is the first digit typed, ignore it
+		else if (m_output == m_outputResetString)
+			m_output = digit; // (0 : input: 6 => 6) first digit
 		else
-			m_output += digit;
-		m_firstDigitEntered = TRUE;
+			m_output += digit; // (45 : input: 9 => 459)
 	}
+	// a valid digit was added
+	m_firstDigitEntered = TRUE;
 	UpdateData(FALSE);
 }
 
@@ -334,38 +344,57 @@ void CCalculatorDlg::createHistoryText()
 	}
 }
 
-void CCalculatorDlg::doOperation(Calculator::ActionType operation)
+// if handleNumber == true then first handles the number entered in the output
+// window before doing the operation.
+void CCalculatorDlg::doOperation(Calculator::ActionType operation, bool handleNumber)
 {
 	if (m_errorInput)
-		reset();
+		return;
 
 	UpdateData();
-	// first add the last entered number
 	Calculator::Action input;
-	input.actionType = Calculator::ActionType::Number;
-	input.value = _wtof(m_output);
-	m_calculator.addInput(input);
+	if (handleNumber)
+	{
+		// first add the last entered number
+		input.actionType = Calculator::ActionType::Number;
+		input.value = _wtof(m_output);
+		m_calculator.addInput(input);
+	}
 	// then add the (last) operation
 	input.actionType = operation;
 	m_errorInput = false;
 	try
 	{
+		// After a (valid) operation we always print a current result if
+		// there is something to print currently. This is the case with all the current 
+		// operations. Later on if there is different kind of operation which does not
+		// behave like this, then a new code is needed here for that operation.
 		if (m_calculator.addInput(input))
 		{
+			// The only situation we will not print the total result here is if both term and 
+			// expression have values currently (are "in use"). For example: "3 + 5 /", 
+			// => operation == Divide and we would not like to print the total result of
+			// this yet becouse that would be 3; we want to wait until the term part (5 / ...)
+			// is finished, then we will print the total 3 + ... .
 			if (!m_calculator.hasLeftTermValue() || !m_calculator.hasLeftExpressionValue())
 			{
+				// print the current total value
 				std::stringstream ss;
 				ss << m_calculator.getCurrentResult();
 				std::string curResult = ss.str();
 
-				m_output = " ";
+				m_output = "";
 				m_output += curResult.c_str();
 				UpdateData(FALSE);
 			}
 		}
+		else // this should never happen; coming here means possible an error in the code
+			AfxMessageBox(_T("Error: An unknown operation.")); 
 	}
 	catch (std::exception& e)
 	{
+		// note: the user can only continue after "divided by zero" error
+		// by pressing "C"/reset.
 		m_output = e.what();
 		m_firstDigitEntered = FALSE;
 		m_errorInput = true;
@@ -390,17 +419,6 @@ void CCalculatorDlg::OnBnClickedButtonPlus()
 void CCalculatorDlg::OnBnClickedButtonEquals()
 {
 	doOperation(Calculator::ActionType::Equals);
-}
-
-void CCalculatorDlg::reset()
-{
-	m_calculator.reset();
-	m_errorInput = false;
-	m_firstDigitEntered = FALSE;
-	resetOutput();
-	m_historyText = "";
-	UpdateData(FALSE);
-
 }
 
 void CCalculatorDlg::OnBnClickedButtonC()
@@ -429,12 +447,13 @@ HBRUSH CCalculatorDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 	// TODO:  Change any attributes of the DC here
 	switch (nCtlColor) {
-
 	case CTLCOLOR_EDIT:
-	case IDC_EDIT_HISTORY:
-		pDC->SetTextColor(RGB(0, 255, 0));
-		pDC->SetBkColor(m_historyBkColor);
-		return (HBRUSH)(m_historyBkBrush->GetSafeHandle());
+		if (pWnd->GetDlgCtrlID() == IDC_EDIT_HISTORY)
+		{
+			pDC->SetTextColor(RGB(0, 255, 0));
+			pDC->SetBkColor(m_historyBkColor);
+			return (HBRUSH)(m_historyBkBrush->GetSafeHandle());
+		}
 	}
 	// TODO:  Return a different brush if the default is not desired
 	return hbr;

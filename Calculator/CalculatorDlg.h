@@ -48,7 +48,7 @@ private:
 	void resetOutput();
 	void reset();
 	void addDigit(char digit);
-	void doOperation(Calculator::ActionType operation);
+	void doOperation(Calculator::ActionType operation, bool handleNumber=true);
 	void createHistoryText();
 
 	Calculator m_calculator;

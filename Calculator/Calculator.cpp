@@ -42,6 +42,11 @@ Calculator::ActionType Calculator::getLastOperation()
 
 double Calculator::getCurrentResult() const
 {
+	// If "+" or "-" has been entered then this function always returns the current 
+	// m_leftExpression value.
+	// After "=" m_leftExpression contains the current result. If after "=" a term
+	// is pressed (and no expression is pressed) then m_leftExpression is reset and
+	// m_leftTerm contains the current result.
 	return m_leftExpression.hasValue() ? m_leftExpression.getValue() : m_leftTerm.getValue();
 }
 
@@ -56,7 +61,7 @@ double Calculator::getCurrentResult() const
 // meaning that the first number after them are just assigned to "left expression" (m_leftExpression).
 // After "=" and "None" the first temporary results (untill the next expression operator)
 // go to m_leftTerm and m_leftExpression remains zero.
-// return value: Return true if 
+// return value: Returns true if input was valid otherwise false
 bool Calculator::addInput(const Action& input)
 {
 	const Calculator::Action lastInput = getLastInput();
@@ -78,37 +83,37 @@ bool Calculator::addInput(const Action& input)
 				if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
 				{
 					// "3 + 4 -", "3 + 4 ="
-					m_leftExpression.add(lastInput.value, input.actionType);
+					m_leftExpression.add(lastInput.value);
 					m_leftTerm.reset();
 				}
 				else if (isTerm(input.actionType))
 				{
 					// "3 + 4 x",
-					m_leftTerm.set(lastInput.value, input.actionType);
+					m_leftTerm.set(lastInput.value);
 				}
 				break;
 			case ActionType::Minus:
 				if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
 				{
 					// "3 - 4 -", "3 - 4 ="
-					m_leftExpression.add(-lastInput.value, input.actionType);
+					m_leftExpression.add(-lastInput.value);
 					m_leftTerm.reset();
 				}
 				else if (isTerm(input.actionType))
 				{
 					// "3 - 4 x",
-					m_leftTerm.set(-lastInput.value, input.actionType);
+					m_leftTerm.set(-lastInput.value);
 				}
 				break;
 			case ActionType::Multiply:
 				if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
 				{
 					// "3 x 4 +", "3 x 4 ="
-					m_leftExpression.add(m_leftTerm.getValue() * lastInput.value, input.actionType);
+					m_leftExpression.add(m_leftTerm.getValue() * lastInput.value);
 					m_leftTerm.reset();
 				}
 				else if (isTerm(input.actionType)) // "3 x 4 x"
-					m_leftTerm.multiplyBy(lastInput.value, input.actionType);
+					m_leftTerm.multiplyBy(lastInput.value);
 				break;
 			case ActionType::Divide:
 				if (isExpression(input.actionType) || input.actionType == ActionType::Equals)
@@ -122,24 +127,24 @@ bool Calculator::addInput(const Action& input)
 					else
 					{
 						// "3 / 4 +", "3 / 4 ="
-						m_leftExpression.add(m_leftTerm.getValue() / lastInput.value, input.actionType);
+						m_leftExpression.add(m_leftTerm.getValue() / lastInput.value);
 						m_leftTerm.reset();
 					}
 				}
 				else if (isTerm(input.actionType)) // "3 / 4 x"
-					m_leftTerm.multiplyBy(1.0 / lastInput.value, input.actionType);
+					m_leftTerm.multiplyBy(1.0 / lastInput.value);
 				break;
 			case ActionType::Equals: // "=" is the start of a new beginnning, see (h: *)
 				if (isTerm(input.actionType))
 				{
 					// "= 3 x "
 					m_leftExpression.reset();
-					m_leftTerm.set(lastInput.value, input.actionType);
+					m_leftTerm.set(lastInput.value);
 				}
 				else if (isExpression(input.actionType))
 				{
 					// "= 3 + "
-					m_leftExpression.set(lastInput.value, input.actionType);
+					m_leftExpression.set(lastInput.value);
 					m_leftTerm.reset();
 				}
 				break;
@@ -148,12 +153,12 @@ bool Calculator::addInput(const Action& input)
 				{
 					// "3 x "
 					m_leftExpression.reset();
-					m_leftTerm.set(lastInput.value, input.actionType);
+					m_leftTerm.set(lastInput.value);
 				}
 				else if (isExpression(input.actionType))
 				{
 					// "3 + "
-					m_leftExpression.set(lastInput.value, input.actionType);
+					m_leftExpression.set(lastInput.value);
 					m_leftTerm.reset();
 				}
 				break;
